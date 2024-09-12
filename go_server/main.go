@@ -2,16 +2,19 @@
 package main
 
 import (
-	"restaurantApp/go_server/controllers"
-
 	"github.com/gin-gonic/gin"
+	"restaurantApp/go_server/routes"
 )
 
 func main() {
-	r := gin.Default()
+	router := gin.Default()
+	router.Use(gin.Logger())
 
-	r.POST("/generate-receipt", controllers.GenerateReceipt)
-	r.POST("/process-order", controllers.ProcessOrder)
+	routes.AuthRoutes(router)
+	routes.UserRoutes(router)
+	routes.GenerateReceiptRoutes(router)
+	routes.OrderProcessRoutes(router)
+	routes.ItemRoutes(router)
 
-	r.Run(":8080") // Listen and serve on 0.0.0.0:8080
+	router.Run(":8080") // Listen and serve on 0.0.0.0:8080
 }

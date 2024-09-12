@@ -1,15 +1,14 @@
-// controllers/order_controller.go
 package controllers
 
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 	"io/ioutil"
 	"net/http"
 	"restaurantApp/go_server/models"
 	"restaurantApp/go_server/views"
-
-	"github.com/gin-gonic/gin"
 )
 
 func ProcessOrder(c *gin.Context) {
@@ -19,7 +18,19 @@ func ProcessOrder(c *gin.Context) {
 		return
 	}
 
-	// Forward the order to the Python microservice
+	var total float64
+	for _, itemID := range order.Items {
+		var foundItem models.Item
+		err := itemCollection.FindOne(c, bson.M{"item_id": itemID}).Decode(&foundItem)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Item unavailable: " + itemID})
+			return
+		}
+		total += foundItem.Price
+	}
+
+	order.Total = total
+
 	orderData, err := json.Marshal(order)
 	if err != nil {
 		views.ErrorResponse(c, "Failed to process order")
